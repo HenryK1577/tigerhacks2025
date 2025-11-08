@@ -10,5 +10,6 @@ git clone
 bash ./setup_linux.sh
 
 then if you want to run the website
+
 run.sh
 
