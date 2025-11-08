@@ -13,15 +13,18 @@ then if you want to run the website
 
 run.sh
 
+
 Notes:
+
 All requirments to run should be handled by run.sh if you add a new condition to run update run.sh
 
-If you add a new python package and in the requirements.txt
+If you add a new python package: add to the requirements.txt
 
 The base template shouldn't need to be change, look to example.html for how to make a new page
 
 
-Todo
+Todo:
+
 A database of some kind to store data (SQL, or SQLite, or something similar)
 
 Write all files, methods, and functions nesscary for someone who knows nothing about them to be able to use them(Functionallity like add a new entry to a row, drop an entry, ect)
