@@ -5,7 +5,7 @@ your computer this is beacuse I don't know how to do it anyother way
 
 Anyway... right now to set up and run the program you need to 
 
-git clone 
+git clone https://github.com/HenryK1577/tigerhacks2025.git
 
 bash ./setup_linux.sh
 
