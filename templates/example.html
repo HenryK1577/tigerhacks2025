@@ -1,0 +1,19 @@
+<!-- All blocks in base.html will be inherited by the .html if this is included
+ that means you only need to change the stuff inside the content block -->
+{% extends "base.html" %} 
+
+<!-- Always have this setup to start -->
+{% block content %}
+<div class="container">
+    <h1>Example Page</h1>
+    <p>This is an example page that extends the base template.</p>
+</div>
+{{ Example_Variable }}
+{{ print(Example_Variable) }} <!-- This is just to show you can run python code here -->
+{% endblock %}
+
+<!-- To render an html file just do
+ render_template("foo.html", arg[0], arg[1], ect) 
+ in this case
+ render_template("example.html", Example_Variable = 4) 
+ -->
