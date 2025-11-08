@@ -29,7 +29,7 @@ def find_system_by_name(system_name, collection = systems_collection):
         })
 
     if system:
-        return {"system": system}
+        return system
     else:
         return None
 
@@ -59,7 +59,7 @@ def find_system_by_star(star_name, collection = systems_collection):
     })
 
     if system:
-        return {"system": system}
+        return system
     else:
         return None
     
@@ -75,37 +75,88 @@ def find_system_by_planet(planet_name, collection = systems_collection):
     })
 
     if system:
-        return {"system": system}
+        return system
     else:
         return None
     
 
-
-    
-#Find a planet by name
-@staticmethod
-def find_planet_by_name(planet_name, collection = systems_collection):
-    system = find_system_by_planet(planet_name)
-
-    def find_in_planet_list(planet_list):
+#Find a planet in a list of planet names (or if its a string just check if they match)
+def find_in_planet_list(planet_list, planet_name):
         for planet in planet_list:
             names = planet.get("name")
-
-            if isinstance(names, list): #Some stars have multiple planets
+            if isinstance(names, list):
                 if any(planet_name.lower() == n.lower() for n in names):
                     return planet
-            elif isinstance(names, str): #Some planets have just one star
+            elif isinstance(names, str):
                 if planet_name.lower() == names.lower():
                     return planet
-                
         return None
 
+def find_planet_in_star(star, planet_name):
+    planets = star.get("planet", [])
+    for planet in planets:
+        names = planet.get("name", [])
+        if isinstance(names, list):
+            if any(planet_name.lower() == n.lower() for n in names):
+                    return planet
+            elif isinstance(names, str):
+                if names.lower() == names.lower():
+                    return planet
+                
+    return None
 
-    star_nested = system.get("star", {}).get("planet", [])
-    found = find_in_planet_list(star_nested)
+    
 
+#Find a star based on the name of an orbiting planet
+@staticmethod
+def find_star_by_planet(planet_name, collection = systems_collection):
+    system = find_system_by_planet(planet_name)
+    if system is None:
+        print(f"Failed to find system")
+        return None
+    
+    #Check top level star
+    star = system.get("system", {}).get("star", {})
+    if star and find_planet_in_star(star, planet_name):
+        return star
+
+    #Check star within binary
+    star = system.get("system", {}).get("binary", {}).get("star", {})
+    if star and find_planet_in_star(star, planet_name):
+        return star
+    
+    #Check star within nested binary
+    star = system.get("system", {}).get("binary", {}).get("binary", {}).get("star", {})
+    if star and find_planet_in_star(star, planet_name):
+        return star
+
+#Find a planet by name
+@staticmethod
+def find_planet_by_name(planet_name, collection=systems_collection):
+
+    system = find_system_by_planet(planet_name)
+    if system is None:
+        return None
+    
+    # Check in star.planets
+    star_nested = system.get("system", {}).get("star", {}).get("planet", [])
+    found = find_in_planet_list(star_nested, planet_name)
+    if found:
+        return found
+
+    # Check in binary.star.planets
     binary_nested = system.get("binary", {}).get("star", {}).get("planet", [])
-    found = find_in_planet_list(binary_nested)
+    found = find_in_planet_list(binary_nested, planet_name)
+    if found:
+        return found
 
-    binary_binary_nested = system.get("binary", {}).get("binary", {}).get("star", {})
+    # Check in binary.binary.star.planets
+    binary_binary_nested = system.get("binary", {}).get("binary", {}).get("star", {}).get("planet", [])
+    found = find_in_planet_list(binary_binary_nested, planet_name)
+    if found:
+        return found
+
+    return None
+
+
 
