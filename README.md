@@ -5,7 +5,8 @@ your computer this is beacuse I don't know how to do it anyother way
 
 Anyway... right now to set up and run the program you need to 
 
-git clone *this directory*
+git clone 
+
 bash ./setup_linux.sh
 
 then if you want to run the website
