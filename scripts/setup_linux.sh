@@ -9,12 +9,18 @@ fi
 
 sudo apt update
 sudo apt upgrade
+
+sudo apt install nodejs
+sudo apt install npm
 sudo apt install pip
+
 
 python3 --version
 if [ $? -ne 0 ]; then
     pip install python3
 fi
+
+cd ..
 python3 -m venv .venv
 pip install -r requirements.txt
 

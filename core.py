@@ -21,5 +21,6 @@ def set_earth_data():
     earth = Planet(earth_data)
     return earth
 
+
 data = set_earth_data()
 print(data.name)
