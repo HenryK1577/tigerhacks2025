@@ -1,17 +1,13 @@
 {% extends "bootstrap/base.html" %}
 
 {% block title %}
-TigerHacks 2025
-{% endblock %}
-
-{% block styles %}
-  {{ super() }}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{{ app_name }}
 {% endblock %}
 
 {% block content %}
-<h1>This is the base template</h1>
+<h1> This is the base page</h1>
 <div class="container">
     {% block page_content %}{% endblock %}
 </div>
 {% endblock %}
+
