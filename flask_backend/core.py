@@ -1,10 +1,30 @@
 # Functions related to application core features
-import flask_backend.db as db
+import db
+import nodal_logistics as nl
+import find_nodes as fn
 import json
 import math
 from datetime import datetime, timedelta
 
 G_CONSTANT = 6.67430e-11
+
+def pathfinder(user_input):
+    try:
+        found = db.find_planet_by_name(user_input)
+        if found:
+            found_sys = db.find_system_by_planet(user_input)
+        else:
+            found_sys = db.find_system_by_name(user_input)
+    except:
+        return "error prasing user input"
+    
+    try:
+        #print(found_sys)
+        found_coords = nl.locate_system_node(found_sys["system"])
+        path_found = fn.find_path(found_coords)
+        return path_found
+    except:
+        return "error finding path"
 
 #Solve Kepler's equation M = E - e*sin(E) for E using Newton-Raphson
 def calculate_eccentric_anomaly(mean_anomaly, e, tol=1e-6, max_iter = 100):
