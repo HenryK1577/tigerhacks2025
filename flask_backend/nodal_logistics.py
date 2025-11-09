@@ -3,32 +3,63 @@ import math
 
 collection = db.systems_collection
 
+graph_cache = None
+
+
+#Build unconnected graph if one does not exist, otherwise just return it
+def get_graph_cache():
+    global graph_cache
+    if graph_cache is None:
+        graph_cache = populate_galaxy()
+
+    return graph_cache
+
+#Return the octant of some coordinates
+def get_octant(coords: tuple):
+        
+        x, y, z = coords[0], coords[1], coords[2]
+        bitx = 1 if x >= 0 else 0
+        bity = 1 if y >= 0 else 0
+        bitz = 1 if z >= 0 else 0
+    
+        octant = (bitx << 2) | (bity << 1) | bitz
+
+        return octant + 1  # shift to 1..8
+
+#Filters graph cache to only nodes in the same octant
+def filter_octant(dest_coords: tuple, graph_cache: list):
+    dest_octant = get_octant(dest_coords)
+    condition = lambda x: get_octant(x.coords) == dest_octant
+    filtered_graph = list(filter(lambda x: condition(x), graph_cache))
+    return filtered_graph
+
+
 
 #Class representing coordinates of a solar system
 class SystemNode:
-    def __init__(self, coords):
+    def __init__(self, coords, name = "unnamed"):
         self.x, self.y, self.z = coords[0], coords[1], coords[2]
+        self.name = name
+        self.coords = coords
         self.connections = []
 
     def __repr__(self):
-        return f"Node({self.x}, {self.y}, {self.z})\nEdges: {len(self.connections)}"
+        return f"{self.name}:({self.x}, {self.y}, {self.z})"
+    
+    def print_edges(self):
+        for node in self.connections:
+            print(f"{node} dist {node_dist(self, node)}")
         
     def add_connection(self, other_node):
         if other_node not in self.connections:
             self.connections.append(other_node)
 
-        
-    
-        
 
-        
-
-    
 
 #Calculate estimated yearly caloric intake based on average weight, height, age, activity factor, as well as # of passengers
 #Based on Mifflin-St Jeor Formula for Basic Metabolic Rate, calculating daily caloric requiremnent
 def calculate_yearly_drain(n_passengers, mean_weight = 80, mean_height = 180, mean_age = 30, activity_factor = 1.375):
-    return (((10 * mean_weight) + (6.25 * mean_weight) - (5 * mean_age) -80) * activity_factor * n_passengers) * 365
+    return (((10 * mean_weight) + (6.25 * mean_height) - (5 * mean_age) -80) * activity_factor * n_passengers) * 365
 
 #Calculate x, y, z position relative to earth in lightyears
 def locate_system_node(system, verbose = False):
@@ -83,8 +114,16 @@ def populate_galaxy(verbose = False):
         
         new_sys = doc["system"]
         try:
+            if isinstance(new_sys["name"], list):
+                new_name = new_sys["name"][0]
+            else:
+                new_name = new_sys["name"]
+        except:
+            new_name = "unnamed"
+
+        try:
             x, y, z = locate_system_node(new_sys, verbose)
-            nodes.append(SystemNode((x, y, z)))
+            nodes.append(SystemNode((x, y, z), new_name))
         except:
             print(f"Failed to locate some system")
                 

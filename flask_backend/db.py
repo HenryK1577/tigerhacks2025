@@ -17,6 +17,27 @@ except Exception as e:
 
 systems_collection = client["celestial_db"]["systems"]
 
+#Cool guy search
+def search_all(name, collection = systems_collection):
+    found = find_system_by_name(name)
+    if found:
+        try:
+            name = found["name"]
+        except:
+            print(found.items)
+        if isinstance(name, list):
+            return name[0]
+        else:
+            return name
+    
+    found = find_planet_by_name(name)
+    if found:
+        name = found["name"]
+        if isinstance(name, list):
+            return name[0]
+        else:
+            return name
+
 #Use regex to find a system by name of the system
 @staticmethod
 def find_system_by_name(system_name, collection = systems_collection):
