@@ -1,5 +1,0 @@
-flask
-flask-bootstrap
-flask-wtf
-mongodb
-pymongo
