@@ -27,7 +27,9 @@ def get_octant(coords: tuple):
         return octant + 1  # shift to 1..8
 
 #Filters graph cache to only nodes in the same octant
-def filter_octant(dest_coords: tuple, graph_cache: list):
+def filter_octant(dest_coords: tuple, graph_cache : list = None):
+    if graph_cache is None:
+        graph_cache = get_graph_cache()
     dest_octant = get_octant(dest_coords)
     condition = lambda x: get_octant(x.coords) == dest_octant
     filtered_graph = list(filter(lambda x: condition(x), graph_cache))
@@ -37,7 +39,7 @@ def filter_octant(dest_coords: tuple, graph_cache: list):
 
 #Class representing coordinates of a solar system
 class SystemNode:
-    def __init__(self, coords, name = "unnamed"):
+    def __init__(self, coords: tuple, name:str = "unnamed"):
         self.x, self.y, self.z = coords[0], coords[1], coords[2]
         self.name = name
         self.coords = coords
@@ -125,7 +127,7 @@ def populate_galaxy(verbose = False):
             x, y, z = locate_system_node(new_sys, verbose)
             nodes.append(SystemNode((x, y, z), new_name))
         except:
-            print(f"Failed to locate some system")
+            verbose and print(f"Failed to locate some system")
                 
 
     return nodes
