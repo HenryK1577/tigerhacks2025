@@ -19,16 +19,8 @@ def planet_data():
     data = db.find_planet_by_name(user_input)
     # data is printed to the backend for debugging reasons
     print(data)
-    try:
-        found_path = core.pathfinder(user_input)
-    except:
-        print("lol!")
-
-    # data is returned back and formatted
-    if found_path:
-        return data, found_path
-    else:
-        return data, "path not found"
+    
+    return data
     
 @app.route("/api/travel-data")
 def travel_data():
