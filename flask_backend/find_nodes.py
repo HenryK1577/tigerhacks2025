@@ -41,36 +41,8 @@ def find_path(goal_coords: tuple, max_distance: float = 100, verbose = False):
         return p_string
     else:
         return "No path found"
-
-
-    # node_graph = nl.get_graph_cache()
-    # node_graph = nl.filter_octant(goal_coords, node_graph)
-    # node_graph.insert(0, SystemNode((0, 0, 0), "Earth"))
-    # nl.build_edges(node_graph, max_distance)
-
-
-    # start = node_graph[0]
-
-    # goal = next(
-    #     (node for node in node_graph
-    #         if abs(node.x - goal_coords[0]) < 1e-6
-    #         and abs(node.y - goal_coords[1]) < 1e-6
-    #         and abs(node.z - goal_coords[2]) < 1e-6),
-    #         None)
-    
-    # path = astar(start, goal)
-
-    # if path:
-    #     p_string = "Path found:\n"
-    #     for step in path:
-    #         p_string += f"{step} \n"
-    #         return p_string
-    # else:
-    #     return "No path found"
     
 
-
-    
 
 def reconstruct_path(came_from, current):
     path = [current]
