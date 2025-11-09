@@ -7,8 +7,7 @@ CORS(app)
 @app.route("/api/project-data")
 def project_data():
     user_input = request.args.get("query", "")
-    # my_info = get_data()
-    return {my_info}
+    return {"message" : user_input}
 
 
 if __name__ == "__main__":
