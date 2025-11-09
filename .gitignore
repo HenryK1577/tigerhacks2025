@@ -1,3 +1,6 @@
 .venv
 __pycache__
-secrets.py
+my_secrets.py
+# Whatever the name of your database stuff is
+# We don't really have to do it but it's good practice
+# and i want those point :p

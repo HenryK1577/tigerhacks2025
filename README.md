@@ -1,39 +1,39 @@
-This is where we will explain how to run this project from the git side
-this will never be read by someone who accesses are website
-right now it is setup in such a way as to only launch to a local host from
-your computer this is beacuse I don't know how to do it anyother way
+<h1>Scripts</h1>
 
-Anyway... right now to set up and run the program you need to 
+*Scripts are relational and can only be run in the scripts directory after they have run they put you back in the top directory*
 
-git clone https://github.com/HenryK1577/tigerhacks2025.git
-
-bash ./setup_linux.sh
-
-then if you want to run the website
-
-run.sh
+<h3>setup_linux.sh</h3>
+This is a bash script that sets up everything this program needs to run you should exicute it when you clone the directory from git
 
 
-Notes:
+<h3>clean.sh</h3>
+This is is a function that gives you a view of what the git hub repo will look like. This isn't nessicary to run because all the irrelivant files will be ignored by the .gitignore however I like how clean it makes the code lool.
 
-All requirments to run should be handled by run.sh if you add a new condition to run update run.sh
+>------------
 
-If you add a new python package: add to the requirements.txt
+``` bash
+# Replace my_script 
+cd scripts
+chmod +x my_script.sh
+. my_script.sh
+```
 
-The base template shouldn't need to be change, look to example.html for how to make a new page
+>------------
 
+<h1>How to run severs</h1>
+Create two bash terminals
 
-Todo:
+In the first
 
-A database of some kind to store data (SQL, or SQLite, or something similar)
+``` bash
+cd flask_backend
+source .venv/bin/activate
+flask --app app.py run --debug
+```
 
-Write all files, methods, and functions nesscary for someone who knows nothing about them to be able to use them(Functionallity like add a new entry to a row, drop an entry, ect)
+In the second
 
-Find some web hosing servace so project can run indepently of a persons computer
-
-Add nav bar to base.html (So a user to locate other pages)
-
-Adjust style.css so website dosen't look like garbage
-
-(Website is very bearbones right now but once we know what functionallity we want i can add more stuff)
-
+``` bash
+cd react_frontend
+npm run dev
+```
