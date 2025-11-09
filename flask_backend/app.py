@@ -29,7 +29,16 @@ def planet_data():
         return data, found_path
     else:
         return data, "path not found"
-
+    
+@app.route("/api/travel-data")
+def travel_data():
+    user_input = request.args.get("query", "")
+    data = db.find_planet_by_name(user_input)
+    try:
+        found_path = core.pathfinder(user_input)
+    except:
+        print("lol!")
+    return found_path
 
 if __name__ == "__main__":
     app.run(debug=True)
