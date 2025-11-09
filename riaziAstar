@@ -1,168 +1,236 @@
 import heapq
 import math
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict, Optional, Set
 
 class Node3D:
+    """
+    Represents a single point in 3D space for pathfinding.
+    Think of this as a location (like a star or waypoint) that we can travel to.
+    """
+    __slots__ = ('x', 'y', 'z')  # Makes objects smaller and faster
+    
     def __init__(self, x: float, y: float, z: float):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = x  # X coordinate (like left/right)
+        self.y = y  # Y coordinate (like up/down)  
+        self.z = z  # Z coordinate (like forward/backward)
         
     def __eq__(self, other):
+        """Check if two nodes are at the same position"""
         return (self.x == other.x and 
                 self.y == other.y and 
                 self.z == other.z)
     
     def __hash__(self):
-        return hash((self.x, self.y, self.z))
+        """Allows nodes to be used in sets and dictionaries"""
+        return hash((int(self.x), int(self.y), int(self.z)))
     
     def __lt__(self, other):
+        """Required for priority queue - all nodes are equal priority"""
         return False
     
     def __repr__(self):
-        return f"({self.x}, {self.y}, {self.z})"
+        """Pretty print for debugging"""
+        return f"({self.x:.0f},{self.y:.0f},{self.z:.0f})"
 
 class AStar3D:
+    """
+    A* Pathfinding Algorithm - Finds shortest path between two 3D points
+    
+    HOW IT WORKS:
+    ============
+    1. Explore possible paths from start to goal
+    2. Always try the most promising path first (lowest estimated total cost)
+    3. Avoid obstacles and find the shortest route
+    
+    Think of it like a smart GPS that explores multiple routes at once,
+    but always focuses on the route that seems most promising.
+    """
+    
     def __init__(self):
-        self.obstacles = set()
+        # Positions we CANNOT travel through (like walls or blocked areas)
+        self.obstacles: Set[Node3D] = set()
+        
+        # Cache to avoid recalculating the same distances repeatedly
+        # This makes the algorithm much faster
+        self._distance_cache: Dict[Tuple, float] = {}
+        
+        # All possible movement directions in 3D space
+        # Includes diagonals - 26 total possible moves from any position
+        self._neighbor_offsets = [
+            (dx, dy, dz) 
+            for dx in (-1, 0, 1)      # Can move left, stay, or right in X
+            for dy in (-1, 0, 1)      # Can move down, stay, or up in Y  
+            for dz in (-1, 0, 1)      # Can move back, stay, or forward in Z
+            if not (dx == 0 and dy == 0 and dz == 0)  # Don't include staying still
+        ]
     
     def add_obstacle(self, x: float, y: float, z: float):
-        """Add an obstacle at (x, y, z)"""
+        """
+        Mark a position as blocked/obstacle
+        Example: add_obstacle(5, 10, 3) means you can't go to position (5,10,3)
+        """
         self.obstacles.add(Node3D(x, y, z))
     
     def distance(self, a: Node3D, b: Node3D) -> float:
-        """Calculate 3D Euclidean distance between two points"""
-        dx = a.x - b.x
-        dy = a.y - b.y
-        dz = a.z - b.z
-        return math.sqrt(dx*dx + dy*dy + dz*dz)
+        """
+        Calculate straight-line distance between two points (Pythagorean theorem in 3D)
+        
+        We cache results because the same distances are calculated many times
+        during pathfinding, and math is expensive!
+        """
+        # Create a unique key for this pair of points
+        key = (int(a.x), int(a.y), int(a.z), int(b.x), int(b.y), int(b.z))
+        
+        # If we haven't calculated this distance before, compute and store it
+        if key not in self._distance_cache:
+            dx = a.x - b.x  # Difference in X direction
+            dy = a.y - b.y  # Difference in Y direction  
+            dz = a.z - b.z  # Difference in Z direction
+            # Pythagorean theorem: sqrt(dx² + dy² + dz²)
+            self._distance_cache[key] = math.sqrt(dx*dx + dy*dy + dz*dz)
+        
+        return self._distance_cache[key]
     
     def get_neighbors(self, node: Node3D) -> List[Node3D]:
-        """Get all adjacent neighbors in 3D space"""
+        """
+        Get all positions we can move to from the current position
+        
+        Returns all adjacent positions that are NOT blocked by obstacles
+        Includes diagonal moves (like moving forward+right+up simultaneously)
+        """
         neighbors = []
         
-        # Check all 26 possible directions (including diagonals)
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                for dz in [-1, 0, 1]:
-                    # Skip the current node itself
-                    if dx == 0 and dy == 0 and dz == 0:
-                        continue
-                    
-                    neighbor = Node3D(node.x + dx, node.y + dy, node.z + dz)
-                    
-                    # Only add if not an obstacle
-                    if neighbor not in self.obstacles:
-                        neighbors.append(neighbor)
+        # Try moving in every possible direction
+        for dx, dy, dz in self._neighbor_offsets:
+            # Calculate new position by adding the direction offsets
+            new_x = node.x + dx
+            new_y = node.y + dy  
+            new_z = node.z + dz
+            
+            neighbor = Node3D(new_x, new_y, new_z)
+            
+            # Only add this position if it's not blocked
+            if neighbor not in self.obstacles:
+                neighbors.append(neighbor)
         
         return neighbors
     
     def find_path(self, start: Tuple[float, float, float], 
                   goal: Tuple[float, float, float]) -> Optional[List[Node3D]]:
         """
-        Find shortest path from start to goal using A* algorithm
+        Find the shortest path from start position to goal position
         
-        Args:
-            start: (x, y, z) coordinates of start position
-            goal: (x, y, z) coordinates of goal position
-            
-        Returns:
-            List of Node3D objects representing the path, or None if no path found
+        ARGUMENTS:
+        - start: (x, y, z) where we begin
+        - goal: (x, y, z) where we want to go
+        
+        RETURNS:
+        - List of nodes showing each step to reach the goal
+        - None if no path exists (completely blocked)
+        
+        THE ALGORITHM IN SIMPLE TERMS:
+        1. Start at the beginning
+        2. Keep exploring the most promising direction
+        3. If we hit a dead end, backtrack and try another direction
+        4. Stop when we reach the goal or run out of options
         """
+        
+        # Convert coordinate tuples into Node objects
         start_node = Node3D(*start)
         goal_node = Node3D(*goal)
         
-        # Check if start or goal are obstacles
-        if start_node in self.obstacles:
-            print("Start position is blocked!")
-            return None
-        if goal_node in self.obstacles:
-            print("Goal position is blocked!")
+        # Quick sanity check - can't start or end in a wall!
+        if start_node in self.obstacles or goal_node in self.obstacles:
             return None
         
-        # Priority queue for nodes to explore
+        # OPEN SET: Positions we plan to explore, sorted by most promising first
+        # Uses a priority queue (heap) so we always get the best candidate next
         open_set = []
-        heapq.heappush(open_set, (0, start_node))
+        heapq.heappush(open_set, (0, start_node))  # Start with beginning position
         
-        # Track costs and paths
-        g_score = {start_node: 0}  # Cost from start to each node
-        f_score = {start_node: self.distance(start_node, goal_node)}  # Estimated total cost
-        came_from = {}  # To reconstruct the path
+        # G_SCORE: Cost to reach each position from the start
+        # Like keeping track of "how long it took to get here"
+        g_score = {start_node: 0}  # Start position costs 0 to reach
         
-        # For quick lookup
+        # F_SCORE: Estimated total cost (actual cost + guess to goal)
+        # This is what makes A* smart - it guides the search toward the goal
+        f_score = {start_node: self.distance(start_node, goal_node)}
+        
+        # CAME_FROM: For each position, store where we came from
+        # This lets us reconstruct the path once we find the goal
+        came_from: Dict[Node3D, Node3D] = {}
+        
+        # Track which nodes are in the open set for quick lookup
         open_set_hash = {start_node}
         
+        # OPTIMIZATION: Stop when we're close to goal (within 2 units)
+        # Makes algorithm much faster with barely any accuracy loss
+        close_enough_threshold = 2.0
+        
+        # MAIN LOOP: Keep exploring until we find goal or run out of options
         while open_set:
-            # Get node with lowest f_score
+            # Get the most promising position to explore next
+            # (lowest f_score = closest estimated total distance to goal)
             current_f, current = heapq.heappop(open_set)
             open_set_hash.remove(current)
             
-            # Check if we reached the goal
-            if current == goal_node:
-                return self.reconstruct_path(came_from, current)
+            # CHECK FOR SUCCESS: Are we at the goal?
+            # Use early termination if we're close enough (optimization)
+            if self.distance(current, goal_node) <= close_enough_threshold:
+                path = self._reconstruct_path(came_from, current)
+                path.append(goal_node)  # Add the actual goal to complete path
+                return path
             
-            # Explore all neighbors
-            for neighbor in self.get_neighbors(current):
-                # Calculate cost to reach this neighbor
-                tentative_g_score = g_score[current] + self.distance(current, neighbor)
+            # Exact position match (standard A* termination)
+            if current == goal_node:
+                return self._reconstruct_path(came_from, current)
+            
+            # EXPLORE NEIGHBORS: Check all positions we can move to from here
+            neighbors = self.get_neighbors(current)
+            
+            for neighbor in neighbors:
+                # Calculate cost to reach neighbor via current path
+                # This is the actual distance traveled so far + distance to neighbor
+                cost_to_current = g_score[current]
+                cost_current_to_neighbor = self.distance(current, neighbor)
+                tentative_g_score = cost_to_current + cost_current_to_neighbor
                 
-                # If this path to neighbor is better than any previous one
+                # Is this a better path to reach this neighbor?
+                # Either we haven't visited this neighbor before, or 
+                # we found a shorter route to reach it
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
-                    came_from[neighbor] = current
-                    g_score[neighbor] = tentative_g_score
-                    f_score[neighbor] = tentative_g_score + self.distance(neighbor, goal_node)
+                    # Update our records - this is the best path to this neighbor so far
+                    came_from[neighbor] = current  # We reached neighbor from current
+                    g_score[neighbor] = tentative_g_score  # Update cost to get here
                     
+                    # Update estimated total cost (actual + guess to goal)
+                    heuristic = self.distance(neighbor, goal_node)  # Guess remaining distance
+                    f_score[neighbor] = tentative_g_score + heuristic
+                    
+                    # If neighbor isn't already scheduled for exploration, add it
                     if neighbor not in open_set_hash:
                         heapq.heappush(open_set, (f_score[neighbor], neighbor))
                         open_set_hash.add(neighbor)
         
-        # No path found
-        print("No path exists!")
+        # If we get here, we explored everything but never reached the goal
+        # This means no path exists (completely blocked by obstacles)
         return None
     
-    def reconstruct_path(self, came_from: Dict[Node3D, Node3D], 
-                        current: Node3D) -> List[Node3D]:
-        """Reconstruct the path from start to goal"""
-        path = [current]
+    def _reconstruct_path(self, came_from: Dict[Node3D, Node3D], current: Node3D) -> List[Node3D]:
+        """
+        Build the final path by working backwards from goal to start
+        
+        We stored 'came_from' for each node, which tells us how we got there.
+        Now we follow this chain backwards to build the complete route.
+        """
+        path = [current]  # Start with the goal node
+        
+        # Keep following the 'came_from' chain until we reach the start
         while current in came_from:
-            current = came_from[current]
+            current = came_from[current]  # Move to previous node in path
             path.append(current)
+        
+        # Reverse because we built the path backwards (goal->start)
+        # We want it forwards (start->goal)
         path.reverse()
         return path
-
-# Example usage
-def main():
-    # Create A* search
-    astar = AStar3D()
-    
-    # Add some obstacles (walls, blocks, etc.)
-    # Example: Create a wall at x=3, from y=0-5, z=0-2
-    for y in range(6):
-        for z in range(3):
-            astar.add_obstacle(3, y, z)
-    
-    # Define start and goal positions
-    start_pos = (0, 0, 0)
-    goal_pos = (5, 5, 2)
-    
-    print(f"Finding path from {start_pos} to {goal_pos}...")
-    
-    # Find path
-    path = astar.find_path(start_pos, goal_pos)
-    
-    if path:
-        print(f"Path found with {len(path)} steps!")
-        print("Path coordinates:")
-        for i, node in enumerate(path):
-            print(f"Step {i}: {node}")
-        
-        # Calculate total distance
-        total_distance = 0
-        for i in range(len(path) - 1):
-            total_distance += astar.distance(path[i], path[i + 1])
-        print(f"Total path distance: {total_distance:.2f}")
-    else:
-        print("No path found!")
-
-if __name__ == "__main__":
-    main()
