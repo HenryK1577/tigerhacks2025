@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import db
+import core
 
 collection = db.systems_collection
 import db
@@ -8,8 +9,8 @@ import db
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/api/project-data")
-def project_data():
+@app.route("/api/planet-data")
+def planet_data():
     # Gets user input from the search box and sets it
     # to user_input
     user_input = request.args.get("query", "")
@@ -18,10 +19,26 @@ def project_data():
     data = db.find_planet_by_name(user_input)
     # data is printed to the backend for debugging reasons
     print(data)
+    try:
+        found_path = core.pathfinder(user_input)
+    except:
+        print("lol!")
+
+    # data is returned back and formatted
+    if found_path:
+        return data, found_path
+    else:
+        return data, "path not found"
+
+@app.route("/api/travel-data")
+def travel_data():
+    user_input = request.args.get("query", "")
+    data = db.find_planet_by_name(user_input)
+    found_path = core.pathfin
+
 
     # data is returned back and formatted
     return data
-
 
 if __name__ == "__main__":
     app.run(debug=True)

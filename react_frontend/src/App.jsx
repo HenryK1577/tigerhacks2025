@@ -11,7 +11,7 @@ function App() {
       <Navbar bg="primary" variant="dark" expand="md" fixed="top">
         <Container>
           <Navbar.Brand as={Link} to="/">
-            My React App
+            SpaceWaze
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
@@ -23,7 +23,7 @@ function App() {
                 Info
               </Nav.Link>
               <Nav.Link as={Link} to="/project">
-                Project
+                Pathfinder
               </Nav.Link>
             </Nav>
           </Navbar.Collapse>
