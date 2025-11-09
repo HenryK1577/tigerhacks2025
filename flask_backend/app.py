@@ -1,14 +1,23 @@
 from flask import Flask, request
 from flask_cors import CORS
+import db
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route("/api/project-data")
 def project_data():
+    # Gets user input from the search box and sets it
+    # to user_input
     user_input = request.args.get("query", "")
-    return {"message" : user_input}
+    # find_planet_by_name is used to get the associated json file 
+    # and is assinged to data
+    data = db.find_planet_by_name(user_input)
+    # data is printed to the backend for debugging reasons
+    print(data)
 
+    # data is returned back and formatted
+    return data
 
 if __name__ == "__main__":
     app.run(debug=True)

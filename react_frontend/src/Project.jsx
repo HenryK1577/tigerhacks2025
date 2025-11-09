@@ -4,45 +4,73 @@ export default function Project() {
   const [inputValue, setInputValue] = useState("");
   const [response, setResponse] = useState("");
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
     try {
+      e.preventDefault(); // Prevents a reload
       // Send the inputValue to Flask as a query parameter
-      const res = await fetch(`http://localhost:5000/api/project-data?query=${inputValue}`);
+      const res = await fetch(
+        `http://localhost:5000/api/project-data?query=${inputValue}`,
+      );
       const data = await res.json();
-      setResponse(data.message);
+      if (data && typeof data === "object") {
+        setResponse(data);
+      } else {
+        setResponse({ message: "No data found for this planet." });
+      }
     } catch (error) {
+      // Ethier there was a connection error in the backend
+      // or the entry does not exist
       console.error(error);
-      setResponse("Error connecting to Flask backend.");
+      setResponse("Error from Flask backend.");
     }
   };
 
   return (
-    <div style={{ textAlign: "center" }}>
-      {/* Image of SPACE */}
-      <img src="/public/LPOS.png" alt="My Image" style={{ width: "100%", height: "auto" }} />
+    <div style={{ textAlign: "left" }}>
+      {/* Submit form */}
+      <form onSubmit={handleSubmit}>
+        <input
+          style={{
+            padding: "10px",
+            fontSize: "20px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            width: "500px",
+            margin: "30px",
+          }}
+          type="text"
+          placeholder="Celestial Body..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+        />
+      </form>
 
-      {/* Text field */}
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Distance to..."
-        style={{ fontSize: "16px" }}
-      />
-
-      {/* Button to submit */}
-      <button
-        onClick={handleSubmit}
-        style={{ marginLeft: "10px", padding: "8px 16px" }}
+      {/* Image from scrapper */}
+      <div
+        style={{
+          margin: "30px",
+        }}
       >
-        Send
-      </button>
+        <img src="/LPOS.png" alt="Planet" width="450" height="450" />
+      </div>
 
-      {/* Show response */}
+      {/* JSON response box */}
       {response && (
-        <p style={{ marginTop: "20px", fontSize: "18px", color: "green" }}>
-          {response}
-        </p>
+        <div>
+          {Object.entries(response).map(([key, value]) => (
+            <div
+              key={key}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "8px",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>{key}:</span>
+              <span>{value}</span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

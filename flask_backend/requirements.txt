@@ -1,5 +1,5 @@
 flask
 flask_cors
-mongodb
+mongo
 pymongo
 datetime
