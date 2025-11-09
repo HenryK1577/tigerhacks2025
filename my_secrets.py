@@ -1,1 +1,0 @@
-MONGO_URI = "mongodb+srv://henklep636_db_user:rfyXAomugtN3LhyD@had-tigerhacks25.paxezp6.mongodb.net/?appName=had-tigerhacks25"

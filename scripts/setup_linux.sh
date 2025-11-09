@@ -12,6 +12,7 @@ sudo apt update -y
 sudo apt upgrade -y
 
 sudo apt install nodejs -y
+nvm install 22.12
 sudo apt install npm -y
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
