@@ -2,6 +2,9 @@ from flask import Flask, request
 from flask_cors import CORS
 import db
 
+collection = db.systems_collection
+import db
+
 app = Flask(__name__)
 CORS(app)
 
@@ -18,6 +21,7 @@ def project_data():
 
     # data is returned back and formatted
     return data
+
 
 if __name__ == "__main__":
     app.run(debug=True)
