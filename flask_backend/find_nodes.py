@@ -31,14 +31,7 @@ def find_path(goal_coords: tuple, max_distance: float = 100, verbose = False):
 
     if path:
         first = 1
-        p_string = "Path found:\n"
-        for step in path:
-            if first ==1:
-                first = 0
-                p_string+= f"From {step}"
-            else:
-                p_string += f"to {step} \n"
-        return p_string
+        return path
     else:
         return "No path found"
     
